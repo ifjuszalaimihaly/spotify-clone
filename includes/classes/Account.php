@@ -1,14 +1,18 @@
 <?php
 
+use mysql_xdevapi\Result;
+
 namespace\Account::class;
 
 class Account
 {
 	private $errorArray;
+	private $db;
 
-	public function __construct()
+	public function __construct(PDO $db)
 	{
        $this->errorArray = array();
+       $this->db = $db;
 	}
 
 	public function register($username,$firstName,$lastName,$email,$email2,$password,$password2)
@@ -21,7 +25,7 @@ class Account
 
 		if(empty($this->errorArray)) {
 			//Insert into db
-			return true;
+            return $this->insertUserDetails($username,$firstName,$lastName,$email,$password);
 		} else {
 			return false;
 		}
@@ -35,13 +39,39 @@ class Account
 	    return $this->errorArray[$field];
     }
 
+    private function insertUserDetails($username,$firstName,$lastName,$email,$password)
+    {
+        $password = password_hash($password,PASSWORD_BCRYPT);
+        $profilePicture = "assets/images/profile-pics/head_emerald.png";
+        $date = date("Y-m-d G:i:s");
+
+        $stmt = $this->db->prepare("INSERT INTO users (username,first_name,last_name,email,password,sign_up_date,profile_picture) values (?,?,?,?,?,?,?);");
+        /*$stmt->bindParam(1,$username,PDO::PARAM_STR);
+        $stmt->bindParam(2,$firstName, PDO::PARAM_STR);
+        $stmt->bindParam(3,$lastName,PDO::PARAM_STR);
+        $stmt->bindParam(4,$email,PDO::PARAM_STR);
+        $stmt->bindParam(5,$password,PDO::PARAM_STR);
+        $stmt->bindParam(6,$date,PDO::PARAM_STR);
+        $stmt->bindParam(7,$profilePicture,PDO::PARAM_STR);*/
+        return $stmt->execute([$username,$firstName,$lastName,$email,$password,$date,$profilePicture]);
+    }
+
 	private function validateUsername($username) 
 	{
 		if(!$this->validateFieldLength("username", $username,5,25)){
 		    return;
+		}
+
+		$stmt = $this->db->prepare("SELECT username FROM users WHERE username LIKE ?;");
+		if(!$stmt->execute([$username])){
+            $this->userNameTakenError();
+            return;
         }
 
-		//TODO: check if username exists
+		if($stmt->rowCount()) {
+            $this->userNameTakenError();
+            return;
+        }
 	}
 
 	private function validateEmails($email, $email2)
@@ -61,7 +91,16 @@ class Account
 			return;
 		}
 
-		//TODO: Check that username hasn't already been used.
+        $stmt = $this->db->prepare("SELECT email FROM users WHERE email LIKE ?;");
+        if(!$stmt->execute([$email])){
+            $this->emailTakenError();
+            return;
+        }
+
+        if($stmt->rowCount()) {
+            $this->emailTakenError();
+            return;
+        }
 	}
 
 	private function validatePasswords($password, $password2)
@@ -70,7 +109,7 @@ class Account
             if(!key_exists("password",$this->errorArray)){
                 $this->errorArray["password"] = [];
             }
-			array_push($this->errorArray[_("password")], Constants::$passwordsDoNoMatch);
+			array_push($this->errorArray["password"], Constants::$passwordsDoNoMatch);
 			return;
 		}
 		if (preg_match('/[^A-Za-z0-9]/', $password)) {
@@ -107,6 +146,25 @@ class Account
 	       $camelCase .= ucfirst($names[$i]);
        }
 	   return $camelCase;
+    }
+
+    private function userNameTakenError(){
+        if(!key_exists('username',$this->errorArray)){
+            $this->errorArray['username'] = [];
+        }
+        array_push($this->errorArray['username'],Constants::$usernameTaken);
+    }
+
+    private function emailTakenError(){
+        if(!key_exists('email',$this->errorArray)){
+            $this->errorArray['email'] = [];
+        }
+        array_push($this->errorArray['email'],Constants::$emailTaken);
+    }
+
+    public function __destruct()
+    {
+        $this->db = null;
     }
 }
 ?>

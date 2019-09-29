@@ -26,8 +26,8 @@ if(isset($_POST['registerButton']))
 	$username = sanitizeFormUserName($_POST['username']);
 	$firstName = sanitizeString($_POST['firstName']);
 	$lastName = sanitizeString($_POST['lastName']);
-	$email = sanitizeString($_POST['email']);
-	$email2 = sanitizeString($_POST['email2']);
+	$email = sanitizeFormPassword($_POST['email']);
+	$email2 = sanitizeFormPassword($_POST['email2']);
 	$password = sanitizeFormPassword($_POST['password']);	
 	$password2 = sanitizeFormPassword($_POST['password2']);	
 
