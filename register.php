@@ -1,4 +1,8 @@
 <?php
+session_start();
+if(isset($_SESSION['userLoggedIn'])){
+    header("Location: index.php");
+}
 include('includes/db_connect.php');
 include('includes/classes/Account.php');
 include('includes/classes/Constants.php');
@@ -21,6 +25,9 @@ include('includes/handlers/login-handler.php');
 		 		Login to your account
 		 	</h2>
 		 	<p>
+                <?php foreach ($account->getError("loginFailed") as $error) : ?>
+                    <span class="errorMessage"><?=  $error ?></span>
+                <?php endforeach; ?>
 		 		<label for="loginUsername">Username</label>
 		 		<input id="loginUsername" name="loginUsername" type="text" placeholder="mihalyszalai" required>
 		 	</p>

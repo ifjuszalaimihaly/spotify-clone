@@ -15,11 +15,26 @@ class Account
        $this->db = $db;
 	}
 
+	public function login($username,$password)
+    {
+        $stmt = $this->db->prepare("SELECT password FROM users WHERE username LIKE ?;");
+        if(!$stmt->execute([$username])){
+            $this->loginFailedError();
+            return false;
+        }
+        $stmt->setFetchMode(PDO::FETCH_ASSOC);
+        if($stmt->rowCount() && password_verify($password,$stmt->fetch()['password'])){
+            return true;
+        }
+        $this->loginFailedError();
+        return false;
+    }
+
 	public function register($username,$firstName,$lastName,$email,$email2,$password,$password2)
 	{
 		$this->validateUsername($username);
-		$this->validateFieldLength(_("first name"),$firstName,2,25);
-		$this->validateFieldLength(_("last name"),$lastName,2,25);
+		$this->validateFieldLength("first name",$firstName,2,25);
+		$this->validateFieldLength("last name",$lastName,2,25);
 		$this->validateEmails($email,$email2);
 		$this->validatePasswords($password,$password2);
 
@@ -46,13 +61,6 @@ class Account
         $date = date("Y-m-d G:i:s");
 
         $stmt = $this->db->prepare("INSERT INTO users (username,first_name,last_name,email,password,sign_up_date,profile_picture) values (?,?,?,?,?,?,?);");
-        /*$stmt->bindParam(1,$username,PDO::PARAM_STR);
-        $stmt->bindParam(2,$firstName, PDO::PARAM_STR);
-        $stmt->bindParam(3,$lastName,PDO::PARAM_STR);
-        $stmt->bindParam(4,$email,PDO::PARAM_STR);
-        $stmt->bindParam(5,$password,PDO::PARAM_STR);
-        $stmt->bindParam(6,$date,PDO::PARAM_STR);
-        $stmt->bindParam(7,$profilePicture,PDO::PARAM_STR);*/
         return $stmt->execute([$username,$firstName,$lastName,$email,$password,$date,$profilePicture]);
     }
 
@@ -139,7 +147,8 @@ class Account
         return true;
     }
 
-    private function splitFieldName($fieldName){
+    private function splitFieldName($fieldName)
+    {
 	   $names = explode(" ",$fieldName);
 	   $camelCase = $names[0];
 	   for($i = 1; $i<count($names); $i++){
@@ -148,18 +157,28 @@ class Account
 	   return $camelCase;
     }
 
-    private function userNameTakenError(){
+    private function userNameTakenError()
+    {
         if(!key_exists('username',$this->errorArray)){
             $this->errorArray['username'] = [];
         }
         array_push($this->errorArray['username'],Constants::$usernameTaken);
     }
 
-    private function emailTakenError(){
+    private function emailTakenError()
+    {
         if(!key_exists('email',$this->errorArray)){
             $this->errorArray['email'] = [];
         }
         array_push($this->errorArray['email'],Constants::$emailTaken);
+    }
+
+    private function loginFailedError()
+    {
+        if(!key_exists('loginFailed',$this->errorArray)){
+            $this->errorArray['loginFailed'] = [];
+        }
+        array_push($this->errorArray['loginFailed'],Constants::$loginFailed);
     }
 
     public function __destruct()
