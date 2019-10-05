@@ -1,14 +1,14 @@
 <?php
 if(isset($_POST['loginButton']))
 {
-	//Login button was pressed
-    $username = $_POST['loginUsername'];
+    //Login button was pressed
+    $loginUsername = $_POST['loginUsername'];
     $password = $_POST['loginPassword'];
 
     //Login function
-    $result = $account->login($username,$password);
+    $result = $account->login($loginUsername,$password);
     if($result){
-        $_SESSION['userLoggedIn'] = $username;
+        $_SESSION['userLoggedIn'] = $loginUsername;
         header("Location: index.php");
     }
 }

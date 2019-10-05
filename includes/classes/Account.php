@@ -1,9 +1,4 @@
 <?php
-
-use mysql_xdevapi\Result;
-
-namespace\Account::class;
-
 class Account
 {
 	private $errorArray;

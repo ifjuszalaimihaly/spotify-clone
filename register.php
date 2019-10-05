@@ -53,6 +53,9 @@ include('includes/handlers/login-handler.php');
                                name="loginUsername"
                                type="text"
                                autocomplete="off"
+                               <?php if(isset($loginUsername)): ?>
+                                   value="<?=  $loginUsername ?>"
+                               <?php endif; ?>
                                placeholder="mihalyszalai"
                                required>
                     </p>
@@ -152,9 +155,6 @@ include('includes/handlers/login-handler.php');
                                name="password"
                                type="password"
                                placeholder="Your password"
-                               <?php if(isset($password)): ?>
-                                   value="<?=  $password ?>"
-                               <?php endif; ?>
                                required>
                     </p>
                     <p>
@@ -163,9 +163,6 @@ include('includes/handlers/login-handler.php');
                                name="password2"
                                type="password"
                                placeholder="Your password"
-                               <?php if(isset($password2)): ?>
-                                   value="<?=  $password2 ?>"
-                               <?php endif; ?>
                                required>
                     </p>
                     <button type="submit" name="registerButton">SIGN UP</button>
